@@ -14,8 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class TileImpl
-        implements Tile {
+public class TileImpl implements Tile {
     private static final BufferedImage grass = ImageLoader.load("grass.gif");
     private static final BufferedImage water = ImageLoader.load("water.gif");
     private static final BufferedImage antHill = ImageLoader.load("anthill.gif");
