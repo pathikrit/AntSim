@@ -39,8 +39,12 @@ public class AntsGameModel
     private List<PropertyChangeListener> listeners = new LinkedList();
 
     private Map<Tile, Surroundings> surroundingsCache = new HashMap();
-
-    public AntsGameModel(Class<? extends Ant> antClass, int mapWidth, int mapHeight, int numStartingAnts, int numTurnsPerNewAnt) {
+    
+    private boolean stressTestMode = false;
+    
+    public AntsGameModel(Class<? extends Ant> antClass, int mapWidth, int mapHeight, int numStartingAnts, int numTurnsPerNewAnt, boolean stressTestMode) {
+        this.stressTestMode = stressTestMode;
+        
         this.antClass = antClass;
         this.numTurnsPerNewAnt = numTurnsPerNewAnt;
 
@@ -50,7 +54,15 @@ public class AntsGameModel
             spawnAnt();
         }
 
-        executor.execute(this);
+        if (stressTestMode) {
+            speed = 128;
+        }
+        executor.execute(this);        
+    }
+    
+
+    public AntsGameModel(Class<? extends Ant> antClass, int mapWidth, int mapHeight, int numStartingAnts, int numTurnsPerNewAnt) {
+        this(antClass, mapWidth, mapHeight, numStartingAnts, numTurnsPerNewAnt, false);
     }
 
     public void run() {
@@ -62,12 +74,12 @@ public class AntsGameModel
 
                 long now = System.nanoTime();
                 if (!this.paused) {
-                    Clock.in("TICK");
+                    if(!stressTestMode) Clock.in("TICK");
                     tick();
-                    Clock.out();
+                    if(!stressTestMode) Clock.out();
 
                     if (isWon()) {
-                        System.out.println("You won after " + this.turn + " turns!");
+                        if(!stressTestMode) System.out.println("You won after " + this.turn + " turns!");
                         firePropertyChange(PROP_GAME_OVER, Boolean.valueOf(false), Boolean.valueOf(true));
                         break;
                     }
@@ -123,7 +135,7 @@ public class AntsGameModel
         return this.map;
     }
 
-    private boolean isWon() {
+    public boolean isWon() {
         TileImpl home = getHome();
         return home.getAmountOfFood() >= 500;
     }
@@ -139,10 +151,10 @@ public class AntsGameModel
             }
 
             try {
-                Clock.in("ant logic");
+                if(!stressTestMode) Clock.in("ant logic");
                 Surroundings clonedSurroundings = (Surroundings) Serialization.clone(surroundings);
                 Action action = ant.getAction(clonedSurroundings);
-                Clock.out();
+                if(!stressTestMode) Clock.out();
 
                 if (action == Action.HALT)
                     continue;
@@ -278,7 +290,7 @@ public class AntsGameModel
         }
     }
 
-    private TileImpl getHome() {
+    public TileImpl getHome() {
         return this.map[startingLocation.x][startingLocation.y];
     }
 

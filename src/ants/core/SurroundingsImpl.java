@@ -4,8 +4,7 @@ import ants.Direction;
 import ants.Surroundings;
 import ants.Tile;
 
-public class SurroundingsImpl
-        implements Surroundings {
+public class SurroundingsImpl implements Surroundings {
     private final Tile current;
     private final Tile north;
     private final Tile east;
@@ -31,7 +30,7 @@ public class SurroundingsImpl
 
     public Tile getTile(Direction direction) {
         if (direction == null) {
-            throw new NullArgumentException("direction");
+            throw new IllegalArgumentException("direction is null");
         }
 
         if (direction == Direction.NORTH)

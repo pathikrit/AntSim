@@ -132,15 +132,25 @@ public class OptionsUI extends JPanel {
     }
 
     private void start() {
-        String filePath = this.fileField.getText();
-
-        if (filePath.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "You must select your Ant implementation!");
-            return;
+        Object result = compile(this.fileField.getText());
+        if (result instanceof String) {
+            JOptionPane.showMessageDialog(this, result);
         }
+
+        AntsGameModel model = new AntsGameModel((Class<? extends Ant>) result, (Integer) this.widthSpinner.getValue(),
+                (Integer) this.heightSpinner
+                        .getValue(), (Integer) this.numStartingAntsSpinner.getValue(), (Integer) this.numTurnsPerNewAntSpinner.getValue());
+
+        Ants.get().setContentPane(new AntsView(model));
+    }
+
+    public static Object compile(final String filePath) {
+        if (filePath.isEmpty()) {
+            return "You must select your Ant implementation!";
+        }
+
         if ((!filePath.endsWith(".java")) && (!filePath.endsWith(".class"))) {
-            JOptionPane.showMessageDialog(this, "You must choose a JAVA or CLASS file as your Ant implementation!");
-            return;
+            return "You must choose a JAVA or CLASS file as your Ant implementation!";
         }
 
         if (filePath.endsWith(".java")) {
@@ -148,36 +158,27 @@ public class OptionsUI extends JPanel {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
             if (compiler == null) {
-                JOptionPane.showMessageDialog(null, "No compiler was found -- try using a .class file instead.");
-                return;
+                return "No compiler was found -- try using a .class file instead.";
             }
 
             int i = compiler.run(null, System.out, System.err, new String[]{filePath});
             if (i != 0) {
-                JOptionPane.showMessageDialog(this, "Problem Compiling");
-                return;
+                return "Problem Compiling";
             }
-
-            filePath = filePath.substring(0, filePath.length() - 4) + "class";
         }
 
-        File file = new File(this.fileField.getText());
+        File file = new File(filePath);
         if (!file.exists()) {
-            throw new RuntimeException("Could not find the class file -- " + file);
+            return "Could not find the class file -- " + file;
         }
 
         Class c = Serialization.loadClass(file);
 
         if (!Ant.class.isAssignableFrom(c)) {
-            JOptionPane.showMessageDialog(this, "Your implementation must implement Ant.java!");
-            return;
+            return "Your implementation must implement Ant.java!";
         }
 
-        AntsGameModel model = new AntsGameModel(c, ((Integer) this.widthSpinner.getValue()).intValue(),
-                ((Integer) this.heightSpinner
-                        .getValue()).intValue(), ((Integer) this.numStartingAntsSpinner.getValue()).intValue(), ((Integer) this.numTurnsPerNewAntSpinner.getValue()).intValue());
-
-        Ants.get().setContentPane(new AntsView(model));
+        return c;
     }
 
     private void initializeListeners() {
